@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -287,14 +287,14 @@ function render() {
       } else if (isPast) {
         cell.classList.add('past');
       }
-
-      if (!isSun && (!isFuture || isToday)) {
+if (!isSun && (!isFuture || isToday)) {
         cell.addEventListener('click', () => {
           checked[key] = !checked[key];
           save();
           render();
         });
       }
+      
       row.appendChild(cell);
     }
     block.appendChild(row);
