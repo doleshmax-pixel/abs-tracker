@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Abs Tracker — 12 Week Challenge</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #1D9E75;
+    --green-light: #E1F5EE;
+    --green-mid: #5DCAA5;
+    --green-dark: #085041;
+    --amber: #EF9F27;
+    --coral: #D85A30;
+    --gray: #888780;
+    --bg: #F7F6F2;
+    --card: #FFFFFF;
+    --border: rgba(0,0,0,0.08);
+    --text: #1a1a18;
+    --text-2: #6b6a65;
+    --text-3: #a09f9a;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #131311;
+      --card: #1e1e1b;
+      --border: rgba(255,255,255,0.08);
+      --text: #f0ede6;
+      --text-2: #9a9893;
+      --text-3: #5a5955;
+      --green-light: #0a2e22;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; }
+  .header { padding: 2rem 1.25rem 1rem; max-width: 480px; margin: 0 auto; }
+  .header-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.25rem; }
+  .app-title { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; }
+  .app-title span { color: var(--green); }
+  .streak-pill { background: var(--green); color: white; font-size: 12px; font-weight: 500; padding: 4px 12px; border-radius: 20px; font-family: var(--mono); }
+  .header-sub { font-size: 13px; color: var(--text-2); }
+  .progress-wrap { max-width: 480px; margin: 0 auto; padding: 0 1.25rem 1.25rem; }
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+  .progress-fill { height: 100%; background: var(--green); border-radius: 3px; transition: width 0.4s ease; }
+  .progress-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-3); font-family: var(--mono); }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; max-width: 480px; margin: 0 auto; padding: 0 1.25rem 1.25rem; }
+  .stat { background: var(--card); border: 0.5px solid var(--border); border-radius: 12px; padding: 12px 10px; text-align: center; }
+  .stat-num { font-size: 20px; font-weight: 600; font-family: var(--mono); color: var(--text); }
+  .stat-lbl { font-size: 10px; color: var(--text-3); margin-top: 2px; letter-spacing: 0.03em; }
+  .section { max-width: 480px; margin: 0 auto; padding: 0 1.25rem; }
+  .section-lbl { font-size: 10px; font-weight: 500; color: var(--text-3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; font-family: var(--mono); }
+  .workout-card { background: var(--card); border: 0.5px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 1.25rem; }
+  .workout-header { padding: 12px 16px; background: var(--green); display: flex; align-items: center; justify-content: space-between; }
+  .workout-header-title { font-size: 13px; font-weight: 600; color: white; }
+  .workout-header-sub { font-size: 11px; color: rgba(255,255,255,0.75); font-family: var(--mono); }
+  .ex-row { display: flex; align-items: center; padding: 11px 16px; border-bottom: 0.5px solid var(--border); gap: 12px; }
+  .ex-row:last-child { border-bottom: none; }
+  .ex-num { width: 24px; height: 24px; border-radius: 50%; background: var(--green-light); color: var(--green-dark); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: var(--mono); }
+  .ex-info { flex: 1; }
+  .ex-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .ex-hint { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+  .ex-meta { text-align: right; }
+  .ex-detail { font-size: 12px; font-weight: 500; color: var(--text); font-family: var(--mono); }
+  .ex-time { font-size: 10px; color: var(--text-3); margin-top: 1px; font-family: var(--mono); }
+  .rest-sep { display: flex; align-items: center; gap: 8px; padding: 4px 16px; }
+  .rest-line { flex: 1; height: 0.5px; background: var(--border); }
+  .rest-lbl { font-size: 10px; color: var(--text-3); font-family: var(--mono); }
+  .time-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1.25rem; }
+  .time-card { background: var(--card); border: 0.5px solid var(--border); border-radius: 14px; padding: 12px 14px; }
+  .time-card.best { border-color: var(--green); border-width: 1.5px; }
+  .time-tag { font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 20px; display: inline-block; margin-bottom: 6px; font-family: var(--mono); }
+  .time-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  .time-desc { font-size: 11px; color: var(--text-2); line-height: 1.4; }
+  .cal-wrap { margin-bottom: 1.25rem; }
+  .day-header-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px; }
+  .day-hdr { text-align: center; font-size: 10px; color: var(--text-3); font-family: var(--mono); }
+  .week-block { margin-bottom: 5px; }
+  .week-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px; }
+  .week-num { font-size: 10px; color: var(--text-3); font-family: var(--mono); }
+  .ms-pill { font-size: 10px; padding: 1px 7px; border-radius: 20px; font-weight: 500; font-family: var(--mono); }
+  .days-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .day { aspect-ratio: 1; border-radius: 8px; border: 0.5px solid var(--border); background: var(--card); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--text-3); transition: all 0.12s; user-select: none; font-family: var(--mono); -webkit-tap-highlight-color: transparent; }
+  .day:active { transform: scale(0.92); }
+  .day.done { background: var(--green); border-color: var(--green-dark); color: white; font-weight: 500; }
+  .day.today { border: 2px solid var(--green); color: var(--text); font-weight: 600; }
+  .day.rest { background: var(--bg); opacity: 0.4; cursor: default; pointer-events: none; }
+  .ms-list { margin-bottom: 2rem; }
+  .ms-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--card); border: 0.5px solid var(--border); border-radius: 12px; margin-bottom: 6px; transition: opacity 0.3s; }
+  .ms-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .ms-text { flex: 1; font-size: 12px; color: var(--text-2); line-height: 1.4; }
+  .ms-wk { font-size: 10px; color: var(--text-3); font-family: var(--mono); }
+  .ms-check { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .ms-check.done { background: var(--green); border-color: var(--green); }
+  .ms-check.done::after { content: ''; width: 5px; height: 3px; border-left: 1.5px solid white; border-bottom: 1.5px solid white; transform: rotate(-45deg) translateY(-1px); display: block; }
+  .footer { text-align: center; padding: 1rem 1.25rem 2rem; font-size: 11px; color: var(--text-3); font-family: var(--mono); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="app-title">Abs<span> Challenge</span></div>
+    <div class="streak-pill" id="streak-pill">0 day streak</div>
+  </div>
+  <div class="header-sub">12 weeks to summer · started Apr 4</div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+  <div class="progress-labels"><span id="prog-done">0 / 84 workouts</span><span id="prog-pct">0%</span></div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-num" id="s-done">0</div><div class="stat-lbl">done</div></div>
+  <div class="stat"><div class="stat-num" id="s-streak">0</div><div class="stat-lbl">streak</div></div>
+  <div class="stat"><div class="stat-num" id="s-week">Wk 1</div><div class="stat-lbl">current</div></div>
+  <div class="stat"><div class="stat-num" id="s-left">84</div><div class="stat-lbl">days left</div></div>
+</div>
+
+<div class="section">
+  <div class="section-lbl">When to work out</div>
+  <div class="time-grid">
+    <div class="time-card best">
+      <div class="time-tag" style="background:#E1F5EE;color:#085041;">School days ✓</div>
+      <div class="time-title">After school</div>
+      <div class="time-desc">Drop bag → floor. Before sitting down. ~3:30–4:30pm</div>
+    </div>
+    <div class="time-card best">
+      <div class="time-tag" style="background:#E1F5EE;color:#085041;">Free days ✓</div>
+      <div class="time-title">Morning first</div>
+      <div class="time-desc">Before phone. ~9–10am. Willpower is highest.</div>
+    </div>
+    <div class="time-card">
+      <div class="time-tag" style="background:#F1EFE8;color:#5F5E5A;">Backup</div>
+      <div class="time-title">Before shower</div>
+      <div class="time-desc">Any day. Tack it on — you're showering anyway.</div>
+    </div>
+    <div class="time-card">
+      <div class="time-tag" style="background:#FCEBEB;color:#791F1F;">Avoid</div>
+      <div class="time-title">After 9pm</div>
+      <div class="time-desc">Motivation tanks. Last resort only.</div>
+    </div>
+  </div>
+
+  <div class="section-lbl">Daily workout — ~10 minutes</div>
+  <div class="workout-card">
+    <div class="workout-header">
+      <div class="workout-header-title">Full routine · 4–5 days/week</div>
+      <div class="workout-header-sub">Sundays = rest</div>
+    </div>
+    <div class="ex-row">
+      <div class="ex-num">1</div>
+      <div class="ex-info"><div class="ex-name">Plank</div><div class="ex-hint">Body straight, forearms down</div></div>
+      <div class="ex-meta"><div class="ex-detail">3 × 25 sec</div><div class="ex-time">~2 min</div></div>
+    </div>
+    <div class="rest-sep"><div class="rest-line"></div><div class="rest-lbl">30 sec rest</div><div class="rest-line"></div></div>
+    <div class="ex-row">
+      <div class="ex-num">2</div>
+      <div class="ex-info"><div class="ex-name">Crunches</div><div class="ex-hint">Small movement, squeeze at top</div></div>
+      <div class="ex-meta"><div class="ex-detail">3 × 15 reps</div><div class="ex-time">~2.5 min</div></div>
+    </div>
+    <div class="rest-sep"><div class="rest-line"></div><div class="rest-lbl">30 sec rest</div><div class="rest-line"></div></div>
+    <div class="ex-row">
+      <div class="ex-num">3</div>
+      <div class="ex-info"><div class="ex-name">Leg raises</div><div class="ex-hint">Slow and controlled, lower abs</div></div>
+      <div class="ex-meta"><div class="ex-detail">3 × 10 reps</div><div class="ex-time">~2.5 min</div></div>
+    </div>
+    <div class="rest-sep"><div class="rest-line"></div><div class="rest-lbl">30 sec rest</div><div class="rest-line"></div></div>
+    <div class="ex-row">
+      <div class="ex-num">4</div>
+      <div class="ex-info"><div class="ex-name">Bicycle crunches</div><div class="ex-hint">Twist from core, go slow</div></div>
+      <div class="ex-meta"><div class="ex-detail">3 × 15 each</div><div class="ex-time">~3 min</div></div>
+    </div>
+  </div>
+
+  <div class="section-lbl">12-week tracker — tap any day to check off</div>
+  <div class="cal-wrap">
+    <div class="day-header-row">
+      <div class="day-hdr">Su</div><div class="day-hdr">Mo</div><div class="day-hdr">Tu</div>
+      <div class="day-hdr">We</div><div class="day-hdr">Th</div><div class="day-hdr">Fr</div><div class="day-hdr">Sa</div>
+    </div>
+    <div id="calendar"></div>
+  </div>
+
+  <div class="section-lbl">Milestones</div>
+  <div class="ms-list" id="milestones"></div>
+</div>
+
+<div class="footer">saved to this device · no account needed</div>
+
+<script>
+const START = new Date(2026, 3, 4);
+const WEEKS = 12;
+const MILESTONES = [
+  { week: 2, color: '#B4B2A9', text: 'Habit forming — feels automatic now' },
+  { week: 4, color: '#5DCAA5', text: 'Midsection looks visibly flatter' },
+  { week: 6, color: '#1D9E75', text: 'Upper 2 abs visible in good lighting' },
+  { week: 8, color: '#0F6E56', text: 'Clear 4-pack — the big milestone' },
+  { week: 10, color: '#EF9F27', text: '6-pack definition kicking in' },
+  { week: 12, color: '#D85A30', text: 'Summer ready — full definition achieved' },
+];
+
+function dateKey(d) { return d.toISOString().slice(0,10); }
+
+let checked = {};
+try { checked = JSON.parse(localStorage.getItem('abs_tracker_v1') || '{}'); } catch(e) {}
+function save() { try { localStorage.setItem('abs_tracker_v1', JSON.stringify(checked)); } catch(e) {} }
+
+function render() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const cal = document.getElementById('calendar');
+  cal.innerHTML = '';
+  let totalDone = 0;
+
+  for (let w = 0; w < WEEKS; w++) {
+    const ms = MILESTONES.find(m => m.week === w + 1);
+    const block = document.createElement('div');
+    block.className = 'week-block';
+
+    const top = document.createElement('div');
+    top.className = 'week-top';
+    const wlbl = document.createElement('span');
+    wlbl.className = 'week-num';
+    wlbl.textContent = 'Week ' + (w + 1);
+    top.appendChild(wlbl);
+    if (ms) {
+      const pill = document.createElement('span');
+      pill.className = 'ms-pill';
+      pill.textContent = 'milestone';
+      pill.style.cssText = `background:${ms.color}20;color:${ms.color};border:0.5px solid ${ms.color}50`;
+      top.appendChild(pill);
+    }
+    block.appendChild(top);
+
+    const row = document.createElement('div');
+    row.className = 'days-row';
+
+    for (let d = 0; d < 7; d++) {
+      const date = new Date(START);
+      date.setDate(START.getDate() + w * 7 + d);
+      const key = dateKey(date);
+      const isToday = date.getTime() === today.getTime();
+      const isSun = d === 0;
+      const isDone = !!checked[key];
+      if (isDone) totalDone++;
+
+      const cell = document.createElement('div');
+      cell.className = 'day';
+      cell.textContent = date.getDate();
+
+      if (isSun) {
+        cell.classList.add('rest');
+      } else if (isDone) {
+        cell.classList.add('done');
+      } else if (isToday) {
+        cell.classList.add('today');
+      }
+
+      if (!isSun) {
+        cell.addEventListener('click', () => {
+          checked[key] = !checked[key];
+          save();
+          render();
+        });
+      }
+
+      row.appendChild(cell);
+    }
+    block.appendChild(row);
+    cal.appendChild(block);
+  }
+
+  const totalDays = WEEKS * 6;
+  const elapsed = Math.min(Math.floor((today - START) / 86400000), totalDays);
+  const left = Math.max(totalDays - elapsed, 0);
+  const currentWeek = Math.min(Math.floor(elapsed / 7) + 1, 12);
+
+  let streak = 0;
+  let sd = new Date(today);
+  while (true) {
+    const key = dateKey(sd);
+    if (checked[key]) { streak++; sd.setDate(sd.getDate() - 1); }
+    else break;
+  }
+
+  const pct = Math.round(totalDone / totalDays * 100);
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-done').textContent = totalDone + ' / ' + totalDays + ' workouts';
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('s-done').textContent = totalDone;
+  document.getElementById('s-streak').textContent = streak;
+  document.getElementById('s-week').textContent = 'Wk ' + currentWeek;
+  document.getElementById('s-left').textContent = left;
+  document.getElementById('streak-pill').textContent = streak + ' day streak';
+
+  const msDiv = document.getElementById('milestones');
+  msDiv.innerHTML = '';
+  MILESTONES.forEach(ms => {
+    const weekStart = new Date(START);
+    weekStart.setDate(START.getDate() + (ms.week - 1) * 7);
+    const reached = today >= weekStart;
+    const row = document.createElement('div');
+    row.className = 'ms-row';
+    row.style.opacity = reached ? '1' : '0.45';
+    row.innerHTML = `
+      <div class="ms-dot" style="background:${ms.color}"></div>
+      <div class="ms-text">${ms.text}</div>
+      <div class="ms-wk">Wk ${ms.week}</div>
+      <div class="ms-check ${reached ? 'done' : ''}"></div>`;
+    msDiv.appendChild(row);
+  });
+}
+
+render();
+</script>
+</body>
+</html>
